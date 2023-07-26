@@ -13,15 +13,47 @@ read the raw shape data from the clipboard and output it as JSON text.
 
 ### Usage
 
-This fork is designed as a command line program. It may evolve into a library at some point in the future.
+This fork is designed as a command line program or as a library.
 
-At this stage, the program can be run with the go toolchain. 
-Copy a shape from the Cacoo Editor, navigate your local copy of this repo and then run: 
+#### Command line:
 
 ```
-go run _example/main.go
+go install github.com/vibridi/cacooclip/cmd/cacooclip@latest
 ```
-The program will output the raw shape JSON data.
+or from the cloned repo:
+```
+$ make build
+```
+then move the binary into your path. 
+Copy a shape from the Cacoo Editor then run:
+
+```
+$ cacooclip -r
+```
+The command will print the Cacoo shape data to stdout. To write data, select and copy the shape data as JSON text
+and (on MacOS) run:
+
+```
+$ pbpaste | cacooclip -w
+```
+
+#### Library:
+
+```
+$ go get github.com/vibridi/cacooclip
+```
+and then call it as:
+
+```go
+str, err := cacooclip.Read()
+if err != nil {
+	// ...
+}
+err = cacooclip.Write(str)
+if err != nil {
+	// ...
+}
+```
 
 ### License
 
