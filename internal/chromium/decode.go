@@ -19,7 +19,6 @@ func DecodeWebCustomMIMEData(b []byte) (_ map[string]string, err error) {
 			err = fmt.Errorf("read web custom mime data: %v", r)
 		}
 	}()
-	dumpU16(b)
 	buf := bytes.NewBuffer(b)
 	res := map[string]string{}
 

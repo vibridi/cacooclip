@@ -3,5 +3,5 @@
 deps:
 	go get && go mod tidy
 
-install:
-	go install github.com/vibridi/cacooclip/cmd/cacooclip@latest
+build:
+	go build -o cacooclip cmd/cacooclip/main.go
