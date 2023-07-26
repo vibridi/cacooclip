@@ -13,12 +13,13 @@ import (
 
 type u16string []uint16
 
-func ReadWebCustomMIMEData(b []byte) (_ map[string]string, err error) {
+func DecodeWebCustomMIMEData(b []byte) (_ map[string]string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("read web custom mime data: %v", r)
 		}
 	}()
+	dumpU16(b)
 	buf := bytes.NewBuffer(b)
 	res := map[string]string{}
 
@@ -45,6 +46,22 @@ func reader(buf *bytes.Buffer) func(any) {
 			panic(err)
 		}
 	}
+}
+
+func dumpU16(b []byte) {
+	buf := bytes.NewBuffer(b)
+	for {
+		var n uint16
+		err := binary.Read(buf, binary.LittleEndian, &n)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			panic(err)
+		}
+		fmt.Printf("%d ", n)
+	}
+	fmt.Println()
 }
 
 func advance(read func(any)) {

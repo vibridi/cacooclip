@@ -10,8 +10,6 @@ package cacooclip
 import (
 	"errors"
 	"fmt"
-	"os"
-	"sync"
 
 	"github.com/vibridi/cacooclip/internal/chromium"
 )
@@ -21,26 +19,19 @@ const (
 )
 
 var (
-	errUnavailable = errors.New("unavailable or no data from clipboard")
-	errNoCacooMime = errors.New("no content with Cacoo MIME type in clipboard")
+	errUnavailable  = errors.New("unavailable or no data from clipboard")
+	errWriteFailure = errors.New("unavailable or no data was written to the clipboard")
+	errNoCacooMime  = errors.New("no content with Cacoo MIME type in clipboard")
 )
 
-var (
-	// Due to the limitation on operating systems (such as darwin),
-	// concurrent read can even cause panic, use a global lock to
-	// guarantee one read at a time.
-	lock = sync.Mutex{}
-)
-
+// Read reads Cacoo shape data from the clipboard.
+// Not thread safe. Concurrent reads on some OS'es including Darwin may panic.
 func Read() (string, error) {
-	lock.Lock()
-	defer lock.Unlock()
-
 	b, err := read()
 	if err != nil {
 		return "", fmt.Errorf("read clipboard err: %w", err)
 	}
-	wcmap, err := chromium.ReadWebCustomMIMEData(b)
+	wcmap, err := chromium.DecodeWebCustomMIMEData(b)
 	if err != nil {
 		return "", fmt.Errorf("decode err: %w", err)
 	}
@@ -51,14 +42,11 @@ func Read() (string, error) {
 	return content, nil
 }
 
-func Write(buf []byte) <-chan struct{} {
-	lock.Lock()
-	defer lock.Unlock()
-
-	changed, err := write(buf)
+// Write writes Cacoo shape data to the clipboard so that you can CTRL+V directly onto the Cacoo canvas.
+func Write(str string) error {
+	enc, err := chromium.EncodeWebCustomMIMEData(map[string]string{CacooWebMIMEType: str})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "write to clipboard err: %v\n", err)
-		return nil
+		return fmt.Errorf("encode err: %w", err)
 	}
-	return changed
+	return write(enc)
 }

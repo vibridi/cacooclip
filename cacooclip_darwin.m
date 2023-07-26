@@ -13,15 +13,16 @@
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 
+NSString *const chromiumWebCustomData = @"org.chromium.web-custom-data";
+
 int clipboard_read_cacoo(void **out) {
-    NSString *cacooEditorMIMEType = @"org.chromium.web-custom-data";
 	NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
 
  	NSArray *dataTypes = [pasteboard types];
-	if (![dataTypes containsObject:cacooEditorMIMEType]) {
+	if (![dataTypes containsObject:chromiumWebCustomData]) {
         return -1;
 	}
-    NSData *data = [pasteboard dataForType:cacooEditorMIMEType];
+    NSData *data = [pasteboard dataForType:chromiumWebCustomData];
 	if (data == nil) {
 		return 0;
 	}
@@ -32,14 +33,13 @@ int clipboard_read_cacoo(void **out) {
 }
 
 int clipboard_write_cacoo(const void *bytes, NSInteger n) {
-//     NSString *cacooEditorMIMEType = @"cacoo/shape";
-// 	NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
-// 	NSData *data = [NSData dataWithBytes: bytes length: n];
-// 	[pasteboard clearContents];
-// 	BOOL ok = [pasteboard setData: data forType:cacooEditorMIMEType];
-// 	if (!ok) {
-// 		return -1;
-// 	}
+	NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+	NSData *data = [NSData dataWithBytes: bytes length: n];
+	[pasteboard clearContents];
+	BOOL ok = [pasteboard setData: data forType:chromiumWebCustomData];
+	if (!ok) {
+		return -1;
+	}
 	return 0;
 }
 

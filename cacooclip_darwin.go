@@ -21,7 +21,6 @@ NSInteger clipboard_change_count();
 */
 import "C"
 import (
-	"time"
 	"unsafe"
 )
 
@@ -46,31 +45,14 @@ func read() (buf []byte, err error) {
 
 // write writes the given data to clipboard and
 // returns true if success or false if failed.
-func write(buf []byte) (<-chan struct{}, error) {
-	var ok C.int
+func write(buf []byte) error {
 	if len(buf) == 0 {
-		ok = C.clipboard_write_cacoo(unsafe.Pointer(nil), 0)
-	} else {
-		ok = C.clipboard_write_cacoo(unsafe.Pointer(&buf[0]), C.NSInteger(len(buf)))
+		return nil
 	}
+	var ok C.int
+	ok = C.clipboard_write_cacoo(unsafe.Pointer(&buf[0]), C.NSInteger(len(buf)))
 	if ok != 0 {
-		return nil, errUnavailable
+		return errWriteFailure
 	}
-
-	// use unbuffered data to prevent goroutine leak
-	changed := make(chan struct{}, 1)
-	cnt := C.long(C.clipboard_change_count())
-	go func() {
-		for {
-			// not sure if we are too slow or the user too fast :)
-			time.Sleep(time.Second)
-			cur := C.long(C.clipboard_change_count())
-			if cnt != cur {
-				changed <- struct{}{}
-				close(changed)
-				return
-			}
-		}
-	}()
-	return changed, nil
+	return nil
 }
